@@ -34,7 +34,7 @@ const Profile = ({navigation}) => {
         component1={<TouchableOpacity></TouchableOpacity>}
         component2={
           <TouchableOpacity>
-            <Text style={styles.textBoldWhite}>Profile</Text>
+            <Text style={styles.textBoldWhiteMediumCenter}>Profile</Text>
           </TouchableOpacity>
         }
         component3={

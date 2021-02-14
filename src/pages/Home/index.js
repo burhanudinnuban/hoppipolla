@@ -1,27 +1,27 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, FlatList} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
+import {View, Text, TouchableOpacity, FlatList, TextInput} from 'react-native';
 import {Gap, TopBar} from '../../components';
 import {styles} from '../../configs/styles';
 import auth from '@react-native-firebase/auth';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import color from '../../constants/colors';
 import {useSelector, useDispatch} from 'react-redux';
 import colors from '../../constants/colors';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import {cartAction} from '../../constants/values';
+import {cartAction, reducer} from '../../constants/values';
 import firestore from '@react-native-firebase/firestore';
+const currencyFormatter = require('currency-formatter');
 
 const Home = ({navigation}) => {
   const dispatch = useDispatch();
   const global = useSelector((state) => state.global);
   const cartReducer = useSelector((state) => state.cartReducer.cart);
+  const [pilihanMeja, setpilihanMeja] = useState('');
   const user = global.dataUser;
   const [dataItem, setdataItem] = useState([]);
-  let [idProduct, setidProduct] = useState('');
-  const [selectedValue, setSelectedValue] = useState('java');
   const meja = [
     {label: '1', value: '1'},
     {label: '2', value: '2'},
@@ -32,46 +32,29 @@ const Home = ({navigation}) => {
   ];
 
   function didAddItem(item) {
-    firestore()
-      .collection('cart')
-      .doc(item.idproduct)
-      .onSnapshot((querySnapshot) => {
-        if (querySnapshot.data() != null) {
-          firestore()
-            .collection('cart')
-            .doc(querySnapshot.data().idproduct)
-            .update({
-              qty: parseInt(item.qty) + 1,
-              price: parseInt(item.price) * (parseInt(item.qty) + 1),
-            })
-            .then(() => {
-              console.log('User updated!');
-            });
-        } else {
-          const data = {
-            ...item,
-            bayar: 'waiting',
-          };
-          firestore()
-            .collection('cart')
-            .doc(item.idproduct)
-            .set(data)
-            .then((result) => {
-              console.log('data sukses ditambahkan');
-            });
-        }
-      });
-  }
+    const data = {
+      ...item,
+      bayar: 'waiting',
+      meja: pilihanMeja,
+      priceTotal: item.price,
+    };
 
-  function didPlusItem(item) {
-    dispatch({
-      type: cartAction.PLUSCART,
-      value: {...item, qty: item.qty + 1},
-    });
+    if (pilihanMeja != '') {
+      firestore()
+        .collection('cart')
+        .doc(item.idproduct)
+        .set(data)
+        .then((result) => {
+          setpilihanMeja('');
+          alert(`${item.nama} sudah ditambahkan ke keranjang`);
+        });
+    } else {
+      alert('pilih meja anda');
+    }
   }
 
   useEffect(() => {
-    const unsubscribe = firestore()
+    const getItem = firestore()
       .collection('product')
       .onSnapshot((querySnapshot) => {
         const item = querySnapshot.docs.map((documentSnapshot) => {
@@ -82,8 +65,9 @@ const Home = ({navigation}) => {
         });
         setdataItem(item);
       });
-
-    return () => unsubscribe();
+    return () => {
+      getItem();
+    };
   }, []);
 
   return (
@@ -91,7 +75,7 @@ const Home = ({navigation}) => {
       <TopBar
         component2={
           <TouchableOpacity>
-            <Text style={styles.textBoldWhite}>Home</Text>
+            <Text style={styles.textBoldWhiteMediumCenter}>Home</Text>
           </TouchableOpacity>
         }
       />
@@ -120,7 +104,11 @@ const Home = ({navigation}) => {
             <Gap width={10} />
             <View style={styles.containerNoneCenterProduct}>
               <Text style={styles.textBoldWhiteMediumCenter}>{item.nama}</Text>
-              <Text style={styles.textWhiteCenter}>{item.price}</Text>
+              <Text style={styles.textWhiteCenter}>
+                {currencyFormatter.format(item.price, {
+                  locale: 'id-ID',
+                })}
+              </Text>
               <Text style={styles.textWhiteCenter}>{item.desc}</Text>
               <Gap height={5} />
               <TouchableOpacity
@@ -132,7 +120,20 @@ const Home = ({navigation}) => {
                 <View style={styles.containerNoneRow}>
                   <Text style={styles.textBoldRed}>meja =</Text>
                   <Gap width={5} />
-
+                  <TextInput
+                    style={{
+                      height: wp('10%'),
+                      width: wp('20%'),
+                      color: colors.black,
+                      textAlign: 'center',
+                    }}
+                    value={pilihanMeja}
+                    placeholder={'no.meja'}
+                    onChangeText={(pilihmeja) => {
+                      setpilihanMeja(pilihmeja);
+                    }}
+                    keyboardType={'number-pad'}
+                  />
                   <Gap width={10} />
                   <Icon name={'sort'} size={20} color={colors.primary} brand />
                 </View>

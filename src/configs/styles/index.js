@@ -11,6 +11,11 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
     alignItems: 'center',
   },
+  containerWhite: {
+    flex: 1,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+  },
   containerInputText: {
     flexDirection: 'row',
     borderRadius: 15,
@@ -57,7 +62,7 @@ export const styles = StyleSheet.create({
   containerTopBar: {
     width: wp('100%'),
     height: hp('7.5%'),
-    backgroundColor: colors.darkGray,
+    backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',

@@ -52,10 +52,18 @@ const Register = ({navigation}) => {
           auth()
             .signInWithEmailAndPassword(email, password)
             .then((result) => {
-              didLoadFalse();
-              dispatch({type: reducer.DATAUSER, value: result});
-              dispatch({type: reducer.ISLOGIN, value: true});
-              navigation.replace('MainApp');
+              const user = result.user.email;
+              if (user == 'admin@gmail.com') {
+                didLoadFalse();
+                dispatch({type: reducer.DATAUSER, value: result});
+                dispatch({type: reducer.ISLOGIN, value: true});
+                navigation.replace('AdminApp');
+              } else {
+                didLoadFalse();
+                dispatch({type: reducer.DATAUSER, value: result});
+                dispatch({type: reducer.ISLOGIN, value: true});
+                navigation.replace('MainApp');
+              }
             })
             .catch((e) => {
               const error = e.code;

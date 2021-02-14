@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
 import {View, Text, TouchableOpacity, FlatList} from 'react-native';
 import {Gap, TopBar} from '../../components';
 import {styles} from '../../configs/styles';
@@ -13,6 +14,7 @@ import {
 } from 'react-native-responsive-screen';
 import {cartAction} from '../../constants/values';
 import firestore from '@react-native-firebase/firestore';
+const currencyFormatter = require('currency-formatter');
 
 const History = ({navigation}) => {
   const dispatch = useDispatch();
@@ -22,7 +24,6 @@ const History = ({navigation}) => {
   const [dataItem, setdataItem] = useState([]);
 
   function didAddItem(item) {
-    dispatch({type: cartAction.ADDCART, value: item});
     const data = {
       ...item,
       bayar: 'success',
@@ -48,7 +49,8 @@ const History = ({navigation}) => {
       .doc(item.idproduct)
       .update({
         qty: parseInt(item.qty) + 1,
-        price: parseInt(item.price) * (parseInt(item.qty) + 1),
+        price: parseInt(item.price),
+        priceTotal: parseInt(item.price) * (parseInt(item.qty) + 1),
       })
       .then(() => {
         console.log('User updated!');
@@ -56,7 +58,7 @@ const History = ({navigation}) => {
   }
 
   function didMinItem(item) {
-    if (item.qty == '1' || 1) {
+    if (item.qty <= 1) {
       firestore()
         .collection('cart')
         .doc(item.idproduct)
@@ -64,13 +66,14 @@ const History = ({navigation}) => {
         .then(() => {
           console.log('User deleted!');
         });
-    } else {
+    } else if (item.qty != 1) {
       firestore()
         .collection('cart')
         .doc(item.idproduct)
         .update({
           qty: parseInt(item.qty) - 1,
-          price: parseInt(item.price) * (parseInt(item.qty) - 1),
+          price: parseInt(item.price),
+          priceTotal: parseInt(item.price) * (parseInt(item.qty) - 1),
         })
         .then(() => {
           console.log('User updated!');
@@ -79,7 +82,7 @@ const History = ({navigation}) => {
   }
 
   useEffect(() => {
-    const unsubscribe = firestore()
+    const getItem = firestore()
       .collection('cart')
       .onSnapshot((querySnapshot) => {
         const item = querySnapshot.docs.map((documentSnapshot) => {
@@ -90,8 +93,9 @@ const History = ({navigation}) => {
         });
         setdataItem(item);
       });
-
-    return () => unsubscribe();
+    return () => {
+      getItem();
+    };
   }, []);
 
   return (
@@ -99,7 +103,7 @@ const History = ({navigation}) => {
       <TopBar
         component2={
           <TouchableOpacity>
-            <Text style={styles.textBoldWhite}>Home</Text>
+            <Text style={styles.textBoldWhiteMediumCenter}>Cart</Text>
           </TouchableOpacity>
         }
       />
@@ -127,8 +131,12 @@ const History = ({navigation}) => {
             </View>
             <Gap width={10} />
             <View style={styles.containerNoneLeftProduct}>
-              <Text style={styles.textBoldWhiteMediumCenter}>{item.name}</Text>
-              <Text style={styles.textWhiteCenter}>{item.price}</Text>
+              <Text style={styles.textBoldWhiteMediumCenter}>{item.nama}</Text>
+              <Text style={styles.textWhiteCenter}>
+                {currencyFormatter.format(item.priceTotal, {
+                  locale: 'id-ID',
+                })}
+              </Text>
               <Text style={styles.textWhiteCenter}>{item.desc}</Text>
               <Gap height={5} />
             </View>
@@ -154,7 +162,7 @@ const History = ({navigation}) => {
                   />
                 </TouchableOpacity>
               </View>
-              <Text style={styles.textBoldWhite}>meja = {item.table}</Text>
+              <Text style={styles.textBoldWhite}>meja = {item.meja}</Text>
               <Gap height={10} />
               {item.bayar != 'success' ? (
                 <TouchableOpacity
