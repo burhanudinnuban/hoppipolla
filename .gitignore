@@ -32,7 +32,6 @@ local.properties
 # node.js
 #
 *.hprof
-java_pid4324.hprof
 node_modules/
 npm-debug.log
 yarn-error.log
