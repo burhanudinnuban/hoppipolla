@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "436504224908",
+    "firebase_url": "https://hoppipolla-deb32-default-rtdb.firebaseio.com",
+    "project_id": "hoppipolla-deb32",
+    "storage_bucket": "hoppipolla-deb32.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:436504224908:android:e629ee84b74d7af9e1c7a9",
+        "android_client_info": {
+          "package_name": "com.hoppipolla"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "436504224908-obtq695gvr68faksk44q9eotlqhhg0ih.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hoppipolla",
+            "certificate_hash": "051f27e9887476af2d4a3f421280689f6db5ea22"
+          }
+        },
+        {
+          "client_id": "436504224908-0ih9ftsta5l7r0nt4hp8m1in6a7ntv6l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYJdxfA_GqTj-EEg1qbNoS7TlPFug6BbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "436504224908-0ih9ftsta5l7r0nt4hp8m1in6a7ntv6l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
