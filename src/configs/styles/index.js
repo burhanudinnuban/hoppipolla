@@ -35,10 +35,16 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   containerNoneCenter: {
-    flex: 1,
     width: wp('100%'),
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  containerCenterWhite: {
+    width: wp('100%'),
+    height: hp('100%'),
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
   },
   containerNoneCenterProduct: {
     flex: 1,
@@ -93,6 +99,14 @@ export const styles = StyleSheet.create({
   },
   textBoldBlue: {
     color: colors.blue,
+    fontWeight: 'bold',
+  },
+  textBoldBlack: {
+    color: colors.black,
+    fontWeight: 'bold',
+  },
+  textBoldGreen: {
+    color: 'green',
     fontWeight: 'bold',
   },
   textBoldWhiteLarge: {
@@ -181,6 +195,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 10,
     paddingRight: 10,
+  },
+  listHistory: {
+    width: wp('90%'),
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+    alignItems: 'flex-start',
+    margin: 10,
+    padding: 10,
   },
   buttonSolidSecondary: {
     borderRadius: 15,

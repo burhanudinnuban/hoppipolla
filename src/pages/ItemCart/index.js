@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
-import {View, Text, TouchableOpacity, FlatList} from 'react-native';
+import {View, Text, TouchableOpacity, FlatList, Image} from 'react-native';
 import {Gap, TopBar} from '../../components';
 import {styles} from '../../configs/styles';
 import auth from '@react-native-firebase/auth';
@@ -14,32 +14,81 @@ import {
 } from 'react-native-responsive-screen';
 import {cartAction} from '../../constants/values';
 import firestore from '@react-native-firebase/firestore';
+import {Spinner} from '../../utils';
 const currencyFormatter = require('currency-formatter');
 
 const History = ({navigation}) => {
   const dispatch = useDispatch();
   const global = useSelector((state) => state.global);
+  const [loading, setloading] = useState(false);
   const user = global.dataUser.user;
   const [dataItem, setdataItem] = useState([]);
   const [itemDetail, setitemDetail] = useState([]);
+  const [resultExist, setresultExist] = useState(false);
+  const [result1, setresult] = useState([]);
+  const [exist, setexist] = useState(false);
 
   function didAddItem() {
-    firestore()
-      .collection('history')
-      .doc(user.uid)
-      .set({dataItem})
-      .then(() => {
-        firestore()
-          .collection('cart')
-          .doc(user.uid)
-          .delete()
-          .then(() => {
-            console.log('User deleted!');
-          });
-      });
+    setloading(true);
+    var date = new Date().getDate();
+    var month = new Date().getMonth();
+    var year = new Date().getFullYear();
+    if (resultExist) {
+      firestore()
+        .collection('history')
+        .doc(user.uid)
+        .set({
+          data: [
+            {
+              ...itemDetail,
+              timestamp: `${date}/${month}/${year}`,
+              status_payment: 'success',
+            },
+            ...result1,
+          ],
+        })
+        .then(() => {
+          firestore()
+            .collection('cart')
+            .doc(user.uid)
+            .delete()
+            .then(() => {
+              setloading(false);
+              setdataItem([]);
+              setitemDetail([]);
+            });
+        });
+    } else {
+      firestore()
+        .collection('history')
+        .doc(user.uid)
+        .set({
+          data: [
+            {
+              dataItem: [...dataItem],
+              status_payment: 'success',
+              timestamp: `${date}/${month}/${year}`,
+              priceTotal: itemDetail.priceTotal,
+              totalQty: itemDetail.totalQty,
+            },
+          ],
+        })
+        .then(() => {
+          firestore()
+            .collection('cart')
+            .doc(user.uid)
+            .delete()
+            .then(() => {
+              setloading(false);
+              setdataItem([]);
+              setitemDetail([]);
+            });
+        });
+    }
   }
 
   function didPlusItem(item) {
+    setloading(true);
     const indexUpdate = dataItem.findIndex(
       (items) => items.idproduct == item.idproduct,
     );
@@ -59,43 +108,67 @@ const History = ({navigation}) => {
         {merge: true},
       )
       .then(() => {
-        console.log('User updated!');
+        setloading(false);
       });
   }
 
-  function didMinItem(item) {
-    const indexUpdate = dataItem.findIndex(
-      (items) => items.idproduct == item.idproduct,
-    );
-    console.log(indexUpdate);
-    let newCartUpdate = dataItem;
-    newCartUpdate[indexUpdate].qty = parseInt(dataItem[indexUpdate].qty) - 1;
-    if (item.qty <= 1) {
-      // firestore()
-      //   .collection('cart')
-      //   .doc(user.uid)
-      //   .update('cart', firestore.FieldValue.delete(dataItem[indexUpdate]))
-      //   .then(() => {
-      //     console.log('User deleted!');
-      //   });
-    } else if (item.qty > 1) {
-      firestore()
-        .collection('cart')
-        .doc(user.uid)
-        .set(
-          {
-            cart: [...newCartUpdate],
-            priceTotal:
-              parseInt(itemDetail.priceTotal) -
-              parseInt(dataItem[indexUpdate].price),
-            totalQty: parseInt(itemDetail.totalQty) - 1,
-          },
-          {merge: true},
-        )
-        .then(() => {
-          console.log('User updated!');
-        });
-    }
+  function didMinItem() {
+    setloading(true);
+
+    firestore()
+      .collection('cart')
+      .doc(user.uid)
+      .delete()
+      .then(() => {
+        setloading(false);
+        setdataItem([]);
+        setitemDetail([]);
+      });
+    // if (item.qty > 0) {
+    //   firestore()
+    //     .collection('cart')
+    //     .doc(user.uid)
+    //     .set(
+    //       {
+    //         cart: [...newCartUpdate],
+    //         priceTotal:
+    //           parseInt(itemDetail.priceTotal) -
+    //           parseInt(dataItem[indexUpdate].price),
+    //         totalQty: parseInt(itemDetail.totalQty) - 1,
+    //       },
+    //       {merge: true},
+    //     )
+    //     .then(() => {
+    //       setloading(false);
+    //     });
+    // }
+    // if (item.qty < 2) {
+    //   firestore()
+    //     .collection('cart')
+    //     .doc(user.uid)
+    //     .update({
+    //       cart: firestore.FieldValue.arrayRemove(item.idproduct),
+    //     })
+    //     .then(() => {
+    //       firestore()
+    //         .collection('cart')
+    //         .doc(user.uid)
+    //         .set(
+    //           {
+    //             priceTotal:
+    //               parseInt(itemDetail.priceTotal) -
+    //               parseInt(dataItem[indexUpdate].price),
+    //             totalQty: parseInt(itemDetail.totalQty) - 1,
+    //           },
+    //           {merge: true},
+    //         )
+    //         .then(() => {
+    //           setloading(false);
+    //         });
+
+    //       setloading(false);
+    //     });
+    // }
   }
 
   useEffect(() => {
@@ -103,6 +176,7 @@ const History = ({navigation}) => {
       .collection('cart')
       .doc(user.uid)
       .onSnapshot((result) => {
+        setexist(result.exists);
         if (result.data()) {
           const cart = result.data().cart;
           const cartDetail = result.data();
@@ -110,10 +184,25 @@ const History = ({navigation}) => {
           setitemDetail(cartDetail);
         }
       });
-  }, [user.uid]);
+
+    firestore()
+      .collection('history')
+      .doc(user.uid)
+      .onSnapshot((result) => {
+        setresultExist(result.exists);
+        if (result.data()) {
+          const cartDetail = result.data().data;
+          setresult(cartDetail);
+        }
+      });
+    return () => {
+      null;
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
+      <Spinner loading={loading} />
       <TopBar
         component2={
           <TouchableOpacity>
@@ -135,12 +224,23 @@ const History = ({navigation}) => {
                 justifyContent: 'center',
                 borderRadius: 10,
               }}>
-              <Icon
-                name={'user'}
-                size={wp('6.5%')}
-                color={colors.darkGray}
-                solid
-              />
+              {item.picture == '' ? (
+                <Icon
+                  name={'user'}
+                  size={wp('6.5%')}
+                  color={colors.darkGray}
+                  solid
+                />
+              ) : (
+                <Image
+                  style={{
+                    height: wp('20%'),
+                    width: wp('20%'),
+                    borderRadius: 10,
+                  }}
+                  source={{uri: `${item.picture}`}}
+                />
+              )}
             </View>
             <Gap width={10} />
             <View style={styles.containerNoneLeftProduct}>
@@ -155,14 +255,14 @@ const History = ({navigation}) => {
             </View>
             <View style={{justifyContent: 'center', alignItems: 'center'}}>
               <View style={styles.containerNoneRow}>
-                <TouchableOpacity onPress={() => didMinItem(item)}>
+                {/* <TouchableOpacity onPress={() => didMinItem(item)}>
                   <Icon
                     name={'minus-circle'}
                     size={20}
                     color={colors.white}
                     brand
                   />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 <Gap width={15} />
                 <Text style={styles.textWhite}>{item.qty}</Text>
                 <Gap width={15} />
@@ -181,21 +281,34 @@ const History = ({navigation}) => {
           </TouchableOpacity>
         )}
       />
-      <Text style={styles.textBoldWhiteLarge}>
-        {currencyFormatter.format(itemDetail.priceTotal, {
-          locale: 'id-ID',
-        })}
-      </Text>
-      <Text style={styles.textBoldWhiteMediumCenter}>
-        Total Item = {itemDetail.totalQty}
-      </Text>
-      <Gap height={10} />
+      {exist ? (
+        <View style={styles.containerNoneCenter}>
+          <Text style={styles.textBoldWhiteLarge}>
+            {currencyFormatter.format(itemDetail.priceTotal, {
+              locale: 'id-ID',
+            })}
+          </Text>
+          <Text style={styles.textBoldWhiteMediumCenter}>
+            Total Item = {itemDetail.totalQty}
+          </Text>
+          <Gap height={10} />
 
-      <TouchableOpacity onPress={() => didAddItem()} style={styles.buttonSolid}>
-        <View style={styles.containerNoneRow}>
-          <Text style={styles.textBoldWhiteMediumCenter}>Order</Text>
+          <TouchableOpacity onPress={() => didMinItem()}>
+            <Icon name={'trash'} size={30} color={colors.redDark} brand />
+          </TouchableOpacity>
+          <Gap height={15} />
+          <TouchableOpacity
+            onPress={() => didAddItem()}
+            style={styles.buttonSolid}>
+            <View style={styles.containerNoneRow}>
+              <Text style={styles.textBoldWhiteMediumCenter}>Order</Text>
+            </View>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      ) : (
+        <Text style={styles.textBoldWhiteLarge}>Data cart kosong</Text>
+      )}
+
       <Gap height={10} />
     </View>
   );

@@ -11,10 +11,9 @@ import {
   Register,
   OnBoarding,
   ItemCart,
+  Instagram,
 } from '../../pages';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import firestore from '@react-native-firebase/firestore';
-import {useSelector, useDispatch} from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -57,10 +56,6 @@ const Routing = () => {
 };
 
 const MainApp = () => {
-  const [badgeCart, setbadgeCart] = useState('');
-  const global = useSelector((state) => state.global);
-  const user = global.dataUser.user;
-
   return (
     <Tab.Navigator
       initialRouteName="Home"

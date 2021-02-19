@@ -16,7 +16,6 @@ import {Spinner} from '../../utils';
 
 const Login = ({navigation}) => {
   const dispatch = useDispatch();
-  const global = useSelector((state) => state.global);
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
   const [hide, sethide] = useState(true);

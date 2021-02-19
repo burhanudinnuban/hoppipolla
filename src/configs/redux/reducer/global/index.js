@@ -6,6 +6,7 @@ const initialStateRoot = {
   isFirstLaunch: false,
   disable: false,
   dataUser: {},
+  phoneNumber: '',
 };
 
 const global = (state = initialStateRoot, action) => {
@@ -34,6 +35,11 @@ const global = (state = initialStateRoot, action) => {
       return {
         ...state,
         dataUser: action.value,
+      };
+    case reducer.PHONENUMBER:
+      return {
+        ...state,
+        phoneNumber: action.value,
       };
     default:
       return state;

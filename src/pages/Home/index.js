@@ -1,6 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
-import {View, Text, TouchableOpacity, FlatList, TextInput} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  TextInput,
+  Image,
+} from 'react-native';
 import {Gap, TopBar} from '../../components';
 import {styles} from '../../configs/styles';
 import auth from '@react-native-firebase/auth';
@@ -36,7 +43,7 @@ const Home = ({navigation}) => {
   ];
 
   function didAddItem(item) {
-    // setloading(true);
+    setloading(true);
     const data = {
       cart: [
         {
@@ -59,7 +66,8 @@ const Home = ({navigation}) => {
           totalQty: parseInt(dataCartLoad.totalQty) + 1,
         })
         .then(() => {
-          console.log('User updated!');
+          setloading(false);
+          alert(`${item.nama} sudah ditambahkan ke keranjang`);
         });
     } else {
       if (pilihanMeja != '') {
@@ -72,15 +80,28 @@ const Home = ({navigation}) => {
             alert(`${item.nama} sudah ditambahkan ke keranjang`);
           });
       } else {
+        setloading(false);
         alert('pilih meja anda');
       }
     }
   }
 
   useEffect(() => {
-    const getItem = firestore()
+    setloading(true);
+    firestore()
       .collection('product')
       .onSnapshot((querySnapshot) => {
+        firestore()
+          .collection('cart')
+          .doc(user.uid)
+          .onSnapshot((result) => {
+            setloading(false);
+            setcartExit(result.exists);
+            if (result.data()) {
+              const cartDetail = result.data();
+              setdataCartLoad(cartDetail);
+            }
+          });
         const item = querySnapshot.docs.map((documentSnapshot) => {
           return {
             idproduct: documentSnapshot.id,
@@ -90,21 +111,10 @@ const Home = ({navigation}) => {
         setdataItem(item);
       });
 
-    firestore()
-      .collection('cart')
-      .doc(user.uid)
-      .onSnapshot((result) => {
-        setcartExit(result.exists);
-        if (result.data()) {
-          const cartDetail = result.data();
-          setdataCartLoad(cartDetail);
-          console.log(cartDetail);
-        }
-      });
     return () => {
-      getItem();
+      null;
     };
-  }, [user.uid]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -131,12 +141,23 @@ const Home = ({navigation}) => {
                 justifyContent: 'center',
                 borderRadius: 10,
               }}>
-              <Icon
-                name={'user'}
-                size={wp('6.5%')}
-                color={colors.darkGray}
-                solid
-              />
+              {item.picture == null || undefined ? (
+                <Icon
+                  name={'user'}
+                  size={wp('6.5%')}
+                  color={colors.darkGray}
+                  solid
+                />
+              ) : (
+                <Image
+                  style={{
+                    height: wp('40%'),
+                    width: wp('40%'),
+                    borderRadius: 10,
+                  }}
+                  source={{uri: `${item.picture}`}}
+                />
+              )}
             </View>
             <Gap width={10} />
             <View style={styles.containerNoneCenterProduct}>

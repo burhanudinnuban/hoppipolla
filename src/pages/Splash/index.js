@@ -30,8 +30,8 @@ const Splash = ({navigation}) => {
   }, [isFirstLaunch, isLogIn, navigation]);
 
   return (
-    <View style={styles.containerWhite}>
-      <View style={styles.containerNoneCenter}>
+    <View style={styles.container}>
+      <View style={styles.containerCenterWhite}>
         <Image
           style={{width: wp('80%'), height: wp('80%')}}
           source={require(`../../assets/images/launcher.png`)}

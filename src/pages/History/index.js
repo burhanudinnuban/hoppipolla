@@ -17,26 +17,24 @@ import firestore from '@react-native-firebase/firestore';
 const currencyFormatter = require('currency-formatter');
 
 const History = ({navigation}) => {
-  const dispatch = useDispatch();
+  const [dataDetail, setdataDetail] = useState();
   const global = useSelector((state) => state.global);
-  const cartReducer = useSelector((state) => state.cartReducer.cart);
-  const user = global.dataUser;
-  const [dataItem, setdataItem] = useState([]);
+  const user = global.dataUser.user;
 
   useEffect(() => {
     firestore()
       .collection('history')
       .doc(user.uid)
       .onSnapshot((result) => {
-        console.log(result.data());
         if (result.data()) {
-          const cartDetail = result.data().dataItem;
-          setdataItem(cartDetail);
-          console.log(cartDetail);
+          const cartDetail = result.data().data;
+          setdataDetail(cartDetail);
         }
       });
-    return () => {};
-  }, [user.uid]);
+    return () => {
+      null;
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -47,49 +45,29 @@ const History = ({navigation}) => {
           </TouchableOpacity>
         }
       />
-
-      <FlatList
-        data={dataItem}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item}) => (
-          <TouchableOpacity style={styles.listCart}>
-            <View
-              style={{
-                height: wp('20%'),
-                width: wp('20%'),
-                backgroundColor: colors.primary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 10,
-              }}>
-              <Icon
-                name={'user'}
-                size={wp('6.5%')}
-                color={colors.darkGray}
-                solid
-              />
-            </View>
-            <Gap width={10} />
-            <View style={styles.containerNoneLeftProduct}>
-              <Text style={styles.textBoldWhiteMediumCenter}>{item.nama}</Text>
-              <Text style={styles.textWhiteCenter}>
-                {currencyFormatter.format(item.price, {
+      {dataDetail != null || undefined ? (
+        <FlatList
+          data={dataDetail}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({item}) => (
+            <TouchableOpacity style={styles.listHistory}>
+              <Text style={styles.textBoldRed}>{item.timestamp}</Text>
+              <Text style={styles.textBoldBlack}>QTY = {item.totalQty}</Text>
+              <Text style={styles.textBoldBlack}>
+                TOTAL ={' '}
+                {currencyFormatter.format(item.priceTotal, {
                   locale: 'id-ID',
                 })}
               </Text>
-              <Text style={styles.textWhiteCenter}>{item.desc}</Text>
-              <Gap height={5} />
-            </View>
-            <View style={{justifyContent: 'center', alignItems: 'center'}}>
-              <Text style={styles.textWhite}>{item.qty}</Text>
-              <Text style={styles.textBoldWhite}>meja = {item.meja}</Text>
-              <Gap height={10} />
-
-              <Text style={styles.textPrimary}>{item.bayar}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+              <Text style={styles.textBoldGreen}>
+                status Payment {item.status_payment}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      ) : (
+        <Text style={styles.textBoldWhiteLarge}>Data History Kosong</Text>
+      )}
     </View>
   );
 };

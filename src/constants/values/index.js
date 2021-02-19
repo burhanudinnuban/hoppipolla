@@ -4,6 +4,7 @@ const reducer = {
   ISFIRSTLAUNCH: 'ISFIRSTLAUNCH',
   DISABLE: 'DISABLE',
   DATAUSER: 'DATAUSER',
+  PHONENUMBER: 'PHONENUMBER',
 };
 
 const cartAction = {

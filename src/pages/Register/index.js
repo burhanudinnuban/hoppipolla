@@ -22,6 +22,7 @@ const Register = ({navigation}) => {
   const [email, setemail] = useState('');
   const [nama, setnama] = useState('');
   const [password, setpassword] = useState('');
+  const [phoneNumber, setphoneNumber] = useState('');
   const [photo, setphoto] = useState('');
   const [hide, sethide] = useState(true);
 
@@ -42,7 +43,8 @@ const Register = ({navigation}) => {
   async function didUpdateProfile() {
     const update = {
       displayName: nama,
-      photoURL: photo,
+      photoURL: phoneNumber,
+      phoneNumber: phoneNumber,
     };
 
     auth()
@@ -55,7 +57,14 @@ const Register = ({navigation}) => {
               const user = result.user.email;
               if (user == 'admin@gmail.com') {
                 didLoadFalse();
-                dispatch({type: reducer.DATAUSER, value: result});
+                dispatch({
+                  type: reducer.DATAUSER,
+                  value: result,
+                });
+                dispatch({
+                  type: reducer.PHONENUMBER,
+                  value: phoneNumber,
+                });
                 dispatch({type: reducer.ISLOGIN, value: true});
                 navigation.replace('AdminApp');
               } else {
@@ -75,21 +84,31 @@ const Register = ({navigation}) => {
   }
 
   function didRegister() {
-    didLoadTrue();
-    auth()
-      .createUserWithEmailAndPassword(email, password)
-      .then((result) => {
-        didUpdateProfile(result);
-      })
-      .catch((error) => {
-        didLoadFalse();
-        if (error.code === 'auth/email-already-in-use') {
-          alert('That email address is already in use!');
-        }
-        if (error.code === 'auth/invalid-email') {
-          alert('That email address is invalid!');
-        }
-      });
+    if (email == '') {
+      alert('email tidak boleh kosong');
+    } else if (phoneNumber == '') {
+      alert('phoneNumber tidak boleh kosong');
+    } else if (password == '') {
+      alert('password tidak boleh kosong');
+    } else if (nama == '') {
+      alert('nama lengkap tidak boleh kosong');
+    } else {
+      didLoadTrue();
+      auth()
+        .createUserWithEmailAndPassword(email, password)
+        .then((result) => {
+          didUpdateProfile(result);
+        })
+        .catch((error) => {
+          didLoadFalse();
+          if (error.code === 'auth/email-already-in-use') {
+            alert('That email address is already in use!');
+          }
+          if (error.code === 'auth/invalid-email') {
+            alert('That email address is invalid!');
+          }
+        });
+    }
   }
 
   function didLogin() {
@@ -133,6 +152,22 @@ const Register = ({navigation}) => {
               />
             }
             placeholder={'masukkan alamat email anda'}
+            placeholderTextColor={colors.primary}
+          />
+          <Gap height={10} />
+          <TextInput
+            label={'Nomor Handphone'}
+            value={phoneNumber}
+            onChangeText={(text) => setphoneNumber(text)}
+            iconLeft={
+              <Icon
+                name={'phone'}
+                size={wp('5%')}
+                color={colors.primary}
+                solid
+              />
+            }
+            placeholder={'masukkan nomor hp anda'}
             placeholderTextColor={colors.primary}
           />
           <Gap height={10} />
